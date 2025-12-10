@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Salary;
-use App\Models\SalaryDetail;
 use App\Models\Employee;
 use App\Services\SalaryCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf; // <--- PENTING: Import Library PDF
+use Barryvdh\DomPDF\Facade\Pdf;          // Library PDF
+use Maatwebsite\Excel\Facades\Excel;     // Library Excel
+use App\Exports\SalaryExport;            // Class Export yang baru dibuat
 
 class SalaryController extends Controller
 {
@@ -122,7 +123,7 @@ class SalaryController extends Controller
         return view('salaries.report', compact('salaries'));
     }
 
-    
+    // --- FITUR CETAK PDF ---
     public function downloadPdf($id)
     {
         $salary = Salary::with(['employee', 'details'])->findOrFail($id);
@@ -132,5 +133,16 @@ class SalaryController extends Controller
 
         $fileName = 'Slip-Gaji-' . $salary->employee->nip . '-' . $salary->periode . '.pdf';
         return $pdf->download($fileName);
+    }
+
+    // --- FITUR EXPORT EXCEL (BARU) ---
+    public function exportExcel(Request $request)
+    {
+        $request->validate(['periode' => 'required']);
+        
+        $periode = $request->periode;
+        $namaFile = 'Laporan-Gaji-BPRS-' . $periode . '.xlsx';
+
+        return Excel::download(new SalaryExport($periode), $namaFile);
     }
 }
