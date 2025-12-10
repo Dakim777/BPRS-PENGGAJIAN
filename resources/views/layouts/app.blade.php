@@ -10,11 +10,33 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
         <div class="container">
             <a class="navbar-brand" href="{{ route('dashboard') }}">SISFOR BPRS</a>
-            <div class="collapse navbar-collapse">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ route('employees.index') }}">Karyawan</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('attendances.index') }}">Absensi</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('salaries.index') }}">Penggajian</a></li>
+                    @auth
+                        {{-- Menu hanya tampil jika user login --}}
+                        <li class="nav-item"><a class="nav-link" href="{{ route('employees.index') }}">Karyawan</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('attendances.index') }}">Absensi</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('salaries.index') }}">Penggajian</a></li>
+                        
+                        {{-- Tombol Logout --}}
+                        <li class="nav-item ms-2">
+                            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="nav-link btn btn-link text-warning fw-bold" style="text-decoration: none; border: none;">
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+                    @else
+                        {{-- Opsi Login jika belum masuk (Opsional, jika halaman login menggunakan layout ini) --}}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('login') }}">Login</a>
+                        </li>
+                    @endauth
                 </ul>
             </div>
         </div>
