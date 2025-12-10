@@ -5,17 +5,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\SalaryController;
-use App\Http\Controllers\Auth\LoginController; // Tambahkan ini
+use App\Http\Controllers\Auth\LoginController;
 
-// Route Login & Logout (Bisa diakses Guest)
+// 1. Route Login & Logout (Public / Guest)
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('login', [LoginController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Protect Routes (Hanya User Login)
+// 2. Protected Routes (Hanya Admin Login)
 Route::middleware(['auth'])->group(function () {
     
-    // Redirect root ke dashboard
     Route::get('/', function () {
         return redirect()->route('dashboard');
     });
@@ -30,5 +29,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('salaries/calculate', [SalaryController::class, 'calculate'])->name('salaries.calculate');
     Route::post('salaries/store', [SalaryController::class, 'store'])->name('salaries.store');
     Route::patch('salaries/{salary}/status', [SalaryController::class, 'updateStatus'])->name('salaries.updateStatus');
+    
+    // --> ROUTE BARU PDF <--
+    Route::get('salaries/{salary}/pdf', [SalaryController::class, 'downloadPdf'])->name('salaries.pdf');
+    
     Route::get('salaries', [SalaryController::class, 'index'])->name('salaries.index');
 });

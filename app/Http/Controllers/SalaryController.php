@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Salary;
-use App\Models\SalaryDetail; // Pastikan Model ini ada
+use App\Models\SalaryDetail;
 use App\Models\Employee;
 use App\Services\SalaryCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; // <--- PENTING: Import Library PDF
 
 class SalaryController extends Controller
 {
@@ -42,7 +43,7 @@ class SalaryController extends Controller
     {
         $data = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'periode' => 'required|date_format:Y-m', // Validasi format periode
+            'periode' => 'required|date_format:Y-m',
         ]);
 
         $employee = Employee::findOrFail($data['employee_id']);
@@ -61,10 +62,8 @@ class SalaryController extends Controller
         return DB::transaction(function () use ($data) {
             $employee = Employee::findOrFail($data['employee_id']);
             
-            // Hitung ulang backend agar aman
             $calc = $this->calculator->calculateForEmployee($employee, $data['periode']);
 
-            // 1. Simpan/Update Parent Salary
             $salary = Salary::updateOrCreate(
                 [
                     'employee_id' => $employee->id,
@@ -79,8 +78,7 @@ class SalaryController extends Controller
                 ]
             );
 
-            // 2. Simpan Salary Details (Hapus lama, insert baru agar tidak duplikat)
-            $salary->details()->delete(); // Hapus detail sebelumnya jika ini update
+            $salary->details()->delete();
 
             foreach ($calc['details_list'] as $detail) {
                 $salary->details()->create([
@@ -116,11 +114,23 @@ class SalaryController extends Controller
 
     public function report(Request $request)
     {
-        $salaries = Salary::with(['employee', 'details']) // Eager load details
+        $salaries = Salary::with(['employee', 'details'])
             ->when($request->filled('periode'), fn($q) => $q->where('periode', $request->periode))
             ->orderBy('periode', 'desc')
             ->get();
 
         return view('salaries.report', compact('salaries'));
+    }
+
+    
+    public function downloadPdf($id)
+    {
+        $salary = Salary::with(['employee', 'details'])->findOrFail($id);
+        
+        $pdf = Pdf::loadView('salaries.slip_pdf', compact('salary'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $fileName = 'Slip-Gaji-' . $salary->employee->nip . '-' . $salary->periode . '.pdf';
+        return $pdf->download($fileName);
     }
 }

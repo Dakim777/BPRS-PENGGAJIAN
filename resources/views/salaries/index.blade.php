@@ -36,6 +36,7 @@
                         @endif
                     </td>
                     <td>
+                        {{-- TOMBOL UPDATE STATUS (BAYAR) --}}
                         @if($salary->status_pembayaran == 'pending')
                         <form action="{{ route('salaries.updateStatus', $salary->id) }}" method="POST" class="d-inline">
                             @csrf @method('PATCH')
@@ -43,6 +44,11 @@
                             <button class="btn btn-sm btn-outline-success" onclick="return confirm('Tandai sudah dibayar?')">Bayar</button>
                         </form>
                         @endif
+
+                        {{-- TOMBOL CETAK PDF (BARU) --}}
+                        <a href="{{ route('salaries.pdf', $salary->id) }}" class="btn btn-sm btn-danger" target="_blank">
+                            PDF
+                        </a>
                     </td>
                 </tr>
                 @empty
@@ -56,6 +62,7 @@
     </div>
 </div>
 
+{{-- MODAL CALCULATE --}}
 <div class="modal fade" id="calculateModal" tabindex="-1">
     <div class="modal-dialog">
         <form action="{{ route('salaries.calculate') }}" method="POST">
